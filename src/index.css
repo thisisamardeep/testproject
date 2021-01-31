@@ -1,0 +1,35 @@
+body {
+  text-align: center;
+  font-family: 'PT Sans', sans-serif !important;
+  top: 35%;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+}
+.flex {
+  display: flex;
+  justify-content: center;
+  margin: auto;
+}
+
+.item {
+
+  padding: 2px 6px;
+
+  cursor: default;
+}
+
+.item-highlighted {
+  /*
+  background-color: #4095bf;
+  */
+  background-color: #A9A9A9;
+
+}
+.menu {
+
+  border: 1px solid #A9A9A9;
+
+
+}
