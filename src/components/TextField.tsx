@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import {EmployeeName} from "../types/types";
 
 const InputField = styled.input`
   width: 100%;
@@ -10,23 +11,29 @@ const InputField = styled.input`
   border: 1px solid grey;
 `;
 
+type MyProps = {
+    name: EmployeeName,
+    value: string,
+    onChange: (value: string) => void
+}
+
+type MyState = any
 
 
+export class TextField extends React.Component<MyProps, MyState> {
 
-
-class TextField extends React.Component {
-    constructor(props) {
-        super(props)
-    }
 
     render() {
         return (
             <>
-                <InputField required name={this.props.name} value={this.props.value} onChange={
+
+                <InputField required name={
+                    this.props.name
+                } value={
+                    this.props.value} onChange={
                     (e) => {
                         this.props.onChange(e.target.value)
                     }}/>
-
 
 
             </>
@@ -34,4 +41,4 @@ class TextField extends React.Component {
     }
 
 }
-export default TextField;
+

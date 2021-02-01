@@ -1,4 +1,5 @@
 import React from 'react';
+import {EmployeeName} from "../types/types";
 
 //We need to call c from javascript
 const IMPERATIVE_API = [
@@ -7,8 +8,26 @@ const IMPERATIVE_API = [
 
 ];
 
-export class AutoComplete extends React.Component {
-    constructor(props) {
+type MyProps = {
+    value: EmployeeName,
+    inputProps: any,
+    items: Array<{ key: string, name: string }>,
+    onSelect: (value: any) => void,
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+}
+
+type MyState = {
+    isOpen: boolean,
+    highlightedIndex: number | null
+}
+
+
+export class AutoComplete extends React.Component<MyProps, MyState> {
+    private _ignoreBlur: boolean;
+    private _ignoreFocus: boolean;
+    private notifRef: React.RefObject<any>;
+
+    constructor(props: MyProps) {
         super(props);
         this.state = {
             isOpen: false,
@@ -28,7 +47,7 @@ export class AutoComplete extends React.Component {
 
     }
 
-    componentWillReceiveProps(nextProps, nextContext) {
+    componentWillReceiveProps(nextProps: MyProps, nextContext: React.Context<any>) {
         if ((this.props.value !== nextProps.value || this.state.highlightedIndex === null)) {
             this.setState(this.maybeAutoCompleteText)
         }
@@ -44,9 +63,11 @@ export class AutoComplete extends React.Component {
 
     }
 
-    handleKeyDown(event) {
-        if (AutoComplete.keyDownHandlers[event.key]) {
-            AutoComplete.keyDownHandlers[event.key].call(this, event);
+    handleKeyDown(event: any) {
+
+        if (AutoComplete.keyDownHandlers.hasOwnProperty(event.key)) {
+            (AutoComplete.keyDownHandlers as any)[event.key].call(this, event);
+
         } else if (!(this.isOpen())) {
             this.setState({
                 isOpen: true
@@ -57,35 +78,42 @@ export class AutoComplete extends React.Component {
 
     handleInputBlur() {
         if (this._ignoreBlur) {
-            this._ignoreFocus = true
-            this.notifRef.current.input.focus()
+            this._ignoreFocus = true;
+            this.notifRef.current.input.focus();
             return;
         }
         this.setState({
             isOpen: false,
             highlightedIndex: null
-        }, () => {
         });
     }
 
-    handleChange(event) {
-        this.props.onChange(event, event.target.value)
+    handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        this.props.onChange(event)
 
     }
 
     componentWillMount() {
-        this.notifRef.current = {};
+        (this.notifRef as any).current = {};
     }
 
 
-    static keyDownHandlers = {
-        ArrowDown(event) {
+    static keyDownHandlers: {
+        ArrowDown: (event: any) => void;
+        ArrowUp: (event: any) => void;
+        Enter: (event: any) => void;
+        Escape: (event: any) => void;
+        Tab: (event: any) => void;
+
+    } = {
+        ArrowDown(event: any) {
             event.preventDefault();
-            const items = this.getFilteredItems(this.props);
+            let that = this as any;
+            const items = that.getFilteredItems(that.props);
             if (items.length === 0) {
                 return;
             }
-            const {highlightedIndex} = this.state;
+            const {highlightedIndex} = that.state;
             let index = highlightedIndex === null ? -1 : highlightedIndex
 
             let newhighlightedIndex;
@@ -95,7 +123,7 @@ export class AutoComplete extends React.Component {
                 newhighlightedIndex = index + 1;
             }
             if (newhighlightedIndex !== highlightedIndex) {
-                this.setState({
+                that.setState({
                     highlightedIndex: newhighlightedIndex,
                     isOpen: true,
                 })
@@ -103,13 +131,16 @@ export class AutoComplete extends React.Component {
 
 
         },
-        ArrowUp(event) {
+        ArrowUp(event: React.SyntheticEvent<EventTarget>) {
             event.preventDefault();
-            const items = this.getFilteredItems(this.props);
+            let that = this as any;
+
+
+            const items = that.getFilteredItems(that.props);
             if (items.length === 0) {
                 return;
             }
-            const {highlightedIndex} = this.state;
+            const {highlightedIndex} = that.state;
             let index = highlightedIndex === null ? -1 : highlightedIndex;
 
             let newhighlightedIndex;
@@ -119,7 +150,7 @@ export class AutoComplete extends React.Component {
                 newhighlightedIndex = index - 1;
             }
             if (newhighlightedIndex !== highlightedIndex) {
-                this.setState({
+                that.setState({
                     highlightedIndex: newhighlightedIndex,
                     isOpen: true,
                 })
@@ -128,47 +159,56 @@ export class AutoComplete extends React.Component {
 
         },
 
-        Enter(event) {
-            if (event.keyCode !== 13) {
+        Enter(event: React.KeyboardEvent<EventTarget>) {
+            if (event.key.toString() !== '13') {
                 return;
             }
-            this.setIgnoreBlur(false)
-            if (!this.isOpen()) {
-                return;
+            let that = this as any;
 
-            } else if (this.state.highlightedIndex == null) {
-                this.setState({
+
+            that.setIgnoreBlur(false)
+            if (!that.isOpen()) {
+                return;
+            } else if (that.state.highlightedIndex == null) {
+                that.setState({
                     isOpen: false
                 }, () => {
-                    this.notifRef.current.input.select()
+
+                    that.notifRef.current.input.select()
                 })
             } else {
                 event.preventDefault();
-                const item = this.getFilteredItems(this.props)[this.state.highlightedIndex]
+
+                const item = that.getFilteredItems(that.props)[that.state.highlightedIndex];
                 const value = item.name;
-                this.setState({
+                that.setState({
                     isOpen: false,
                     highlightedIndex: null
                 }, () => {
-                    this.props.onSelect(value)
+                    that.props.onSelect(value)
                 })
             }
         },
         Escape() {
-            this.setIgnoreBlur(false)
-            this.setState({
+            let that = this as any;
+
+            that.setIgnoreBlur(false);
+            that.setState({
                 highlightedIndex: null,
                 isOpen: false
             })
         },
         Tab() {
-            this.setIgnoreBlur(false)
+            let that = this as any;
+
+            that.setIgnoreBlur(false)
         },
+
     };
 
-    composeEventHandlers(internal, external) {
+    composeEventHandlers(internal: any, external: any) {
         return external
-            ? e => {
+            ? (e: any) => {
                 internal(e);
                 external(e)
             }
@@ -180,25 +220,25 @@ export class AutoComplete extends React.Component {
     }
 
 
-    exposeAPI(el) {
+    exposeAPI(el: React.Component<HTMLInputElement>) {
         this.notifRef.current.input = el;
         IMPERATIVE_API.forEach((value) => {
-            if (el && el[value]) {
-                this[value] = el[value].bind(el);
+            if (el && (el as any)[value]) {
+                (this as any)[value] = (el as any)[value].bind(el);
             }
         });
 
     }
 
-    getFilteredItems(props) {
-        let items = props.items;
-        items = items.filter((item) => {
+    getFilteredItems(props: any): MyProps['items'] {
+        let items: MyProps['items'] = props.items;
+        items = items.filter((item: any) => {
             if (this.matchStateToTerm(item, props.value)) {
                 return true;
             } else {
                 return false;
             }
-        }).filter((value, index) => {
+        }).filter((value: any, index: any) => {
             if (index < 10) {
                 return true;
             } else {
@@ -210,13 +250,13 @@ export class AutoComplete extends React.Component {
     }
 
 
-    matchStateToTerm(item, value) {
+    matchStateToTerm(item: { key: string, name: string }, value: string) {
         return (
             item.name.toLowerCase().indexOf(value.toLowerCase()) !== -1
         )
     }
 
-    renderItem(item, isHighlighted) {
+    renderItem(item: { key: string, name: string }, isHighlighted: boolean): React.ReactElement<any> {
 
         return (
             <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`}
@@ -227,16 +267,16 @@ export class AutoComplete extends React.Component {
 
     }
 
-    highlightItemFromMouse(index) {
+    highlightItemFromMouse(index: number) {
         this.setState({highlightedIndex: index})
     }
 
-    setIgnoreBlur(ignore) {
+    setIgnoreBlur(ignore: boolean) {
         this._ignoreBlur = ignore;
     }
 
-    selectItemFromMouse(item) {
-        const value = item.name;
+    selectItemFromMouse(item: { key: string, name: string }) {
+        const value: string = item.name;
         this.setIgnoreBlur(false);
 
         this.setState({
@@ -248,11 +288,11 @@ export class AutoComplete extends React.Component {
         })
     }
 
-    maybeAutoCompleteText(state, props) {
+    maybeAutoCompleteText(state: any, props: any) {
         const {highlightedIndex} = state;
         const {value} = props;
         let index = highlightedIndex === null ? 0 : highlightedIndex;
-        let items = this.getFilteredItems(props);
+        let items: MyProps['items'] = this.getFilteredItems(props);
 
         const matchedItem = items[index] && items[index];
         if (value !== '' && matchedItem) {
@@ -267,8 +307,8 @@ export class AutoComplete extends React.Component {
 
     renderMenu() {
         const items = this.getFilteredItems(this.props).map(
-            (item, index) => {
-                const element = this.renderItem(item, this.state.highlightedIndex === index);
+            (item: { key: string, name: string }, index: number) => {
+                const element: React.ReactElement<any> = this.renderItem(item, this.state.highlightedIndex === index);
 
                 return React.cloneElement(element, {
                     onMouseEnter: () => {
@@ -277,7 +317,7 @@ export class AutoComplete extends React.Component {
                     onClick: () => {
                         this.selectItemFromMouse(item)
                     },
-                    ref: (e) => {
+                    ref: (e: React.Component<HTMLElement>) => {
                         this.notifRef.current[`item-${index}`] = e;
                     }
                 })
@@ -289,7 +329,7 @@ export class AutoComplete extends React.Component {
         </div>))(items);
 
         return React.cloneElement(menu, {
-            ref: e => this.notifRef.current.menu = e,
+            ref: (e: React.Component<HTMLElement>) => this.notifRef.current.menu = e,
 
             onMouseEnter: () => {
                 this.setIgnoreBlur(true)
@@ -303,7 +343,7 @@ export class AutoComplete extends React.Component {
     }
 
     isInputFocused() {
-        const el = this.notifRef.current.input
+        const el = this.notifRef.current.input;
         return el.ownerDocument && (el === el.ownerDocument.activeElement)
     }
 
@@ -313,8 +353,8 @@ export class AutoComplete extends React.Component {
     }
 
     render() {
-        const {inputProps} = this.props
-        const open = this.isOpen();
+        const {inputProps} = this.props;
+        const open: boolean = this.isOpen();
 
         return (
             <div style={{
@@ -324,7 +364,7 @@ export class AutoComplete extends React.Component {
                 height: '40px',
                 padding: '0px 0px',
                 fontSize: '16px'
-            }} >
+            }}>
                 <input {...inputProps}
                        autoComplete={'off'}
                        ref={this.exposeAPI}

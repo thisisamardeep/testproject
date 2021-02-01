@@ -1,11 +1,14 @@
 import React from 'react';
-import Header from '../components/Header';
-import Button from '../components/Button';
+import {Header} from '../components/Header';
+import {Button} from '../components/Button';
 import {AutoComplete} from '../AutoComplete';
 import {GetAllEmployees} from "../actions/employees";
+import {AxiosResponse} from "axios";
+import {EmployeeName} from "../types/types";
+import {History} from 'history';
 
-const items = (data) => {
-    let temp = [];
+const items = (data: AxiosResponse['data']): Array<{ key: string, name: string }> => {
+    let temp: Array<{ key: string, name: string }> = [];
     for (const property in data) {
         if (data.hasOwnProperty(property)) {
             temp.push({
@@ -17,18 +20,27 @@ const items = (data) => {
 };
 
 
-class Home extends React.Component {
+type MyProps = {
+    value: EmployeeName, history: History
+}
+
+type MyState = {
+    value: EmployeeName,
+    itemList: Array<{ key: string, name: string }>
+}
 
 
+export class Home extends React.Component<MyProps, MyState> {
 
-    state = {value: '', itemList: []};
+
+    state: { value: EmployeeName, itemList: Array<{ key: string, name: string }> } = {value: '', itemList: []};
 
 
     componentDidMount() {
 
-        GetAllEmployees((success, resp) => {
+        GetAllEmployees((success: boolean, resp: AxiosResponse) => {
             if (success) {
-                const data = resp?.data;
+                const data: AxiosResponse['data'] = resp?.data;
                 this.setState({
                     value: '',
                     itemList: items(data)
@@ -50,17 +62,18 @@ class Home extends React.Component {
                         value={this.state.value}
                         inputProps={{id: 'states-autocomplete'}}
                         items={this.state.itemList}
-                        onSelect={value => {
+                        onSelect={(value: any) => {
                             this.setState({
                                 value: value,
                                 itemList: this.state.itemList
                             })
                         }}
 
-                        onChange={(event, value) => {
-                            GetAllEmployees((success, resp) => {
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            let value = event.target.value;
+                            GetAllEmployees((success: boolean, resp: AxiosResponse) => {
                                 if (success) {
-                                    const data = resp?.data;
+                                    const data: AxiosResponse['data'] = resp?.data;
                                     this.setState({
                                         value: value,
                                         itemList: items(data)
@@ -87,5 +100,3 @@ class Home extends React.Component {
 
 
 }
-
-export default Home;

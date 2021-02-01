@@ -3,9 +3,11 @@ import {startCase, concat, map, find, groupBy, filter, keys, isEmpty} from 'loda
 import {Link} from 'react-router-dom';
 import styled from 'styled-components';
 // components
-import Header from '../components/Header';
+import {Header} from '../components/Header';
 // api
 import {GetDirectSubordinates} from '../actions/employees';
+import {EmployeeName} from "../types/types";
+import {AxiosResponse} from "axios";
 
 const NameDiv = styled.div`
   cursor: copy;
@@ -13,10 +15,19 @@ const NameDiv = styled.div`
     color: blue;
   }
 `;
+type MyProps = {
+    match: any
+}
+
+type MyState = {
+    empTree: Array<any>
+}
+
+class Overview extends React.Component<MyProps, MyState> {
+    private employeeName: EmployeeName;
 
 
-class Overview extends React.Component {
-    constructor(props) {
+    constructor(props: MyProps) {
         super(props);
         this.employeeName = startCase(this.props.match?.params?.name);
         this.state = {empTree: []};
@@ -29,16 +40,16 @@ class Overview extends React.Component {
 
     }
 
-    getEmployeeInfo(employeeName, parent = null) {
-        GetDirectSubordinates(employeeName, (success, resp) => {
+    getEmployeeInfo(employeeName: EmployeeName, parent: any = null) {
+        GetDirectSubordinates(employeeName, (success: boolean, resp: AxiosResponse) => {
             if (success) {
-                const data = resp?.data;
+                const data: AxiosResponse['data'] = resp?.data;
                 if (data) {
                     let newempTree = concat(this.state.empTree, [{
                         name: employeeName,
                         position: data?.[0],
                         parent: parent
-                    }])
+                    }]);
                     this.setState({
                         empTree: newempTree
                     });
@@ -51,15 +62,15 @@ class Overview extends React.Component {
         })
     }
 
-    getSubordinatesInfo(data, parentName) {
-        const subordinates = data && data[1] && data[1]["direct-subordinates"]
+    getSubordinatesInfo(data: AxiosResponse['data'], parentName: any) {
+        const subordinates = data && data[1] && data[1]["direct-subordinates"];
         subordinates && map(subordinates, (subordinate) => {
             this.getEmployeeInfo(subordinate, parentName)
         })
     }
 
-    copyToClipboard(name) {
-        const link = `${window.location.origin}/overview/${name}`
+    copyToClipboard(name: EmployeeName) {
+        const link = `${window.location.origin}/overview/${name}`;
         let copy = document.createElement("textarea");
         document.body.appendChild(copy);
         copy.value = link;
@@ -81,7 +92,9 @@ class Overview extends React.Component {
                     !isEmpty(this.state.empTree) ?
                         <>
                             <p> Subordinates of
-                                employee <b>{this.employeeName} {this.state.empTree[0] && `(${this.state.empTree[0]?.position})`}</b>:
+                                employee <b>{
+                                    this.employeeName
+                                } {this.state.empTree[0] && `(${this.state.empTree[0]?.position})`}</b>:
                             </p>
                             {
                                 map(keys(this.grouped()), (key, i) => (
@@ -109,7 +122,9 @@ class Overview extends React.Component {
                         :
                         <>
                             <div>
-                                No Subordinates Available For Employee Name <b>{this.employeeName}</b>
+                                No Subordinates Available For Employee Name <b>{
+                                this.employeeName
+                            }</b>
                             </div>
                         </>
                 }

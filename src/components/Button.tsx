@@ -11,11 +11,13 @@ const BtnDiv = styled.div`
   justify-content: center;
 `;
 
+type MyProps = {
+    onClick: () => void, text: any
+}
 
+type MyState = any
 
-class Button extends React.Component {
-
-
+export class Button extends React.Component<MyProps, MyState> {
 
 
     render() {
@@ -26,7 +28,9 @@ class Button extends React.Component {
                         this.props.onClick && this.props.onClick()
                     }}
                 >
-                    {this.props.text || 'Add Description'}
+
+                    {
+                        this.props.text || 'Add Description'}
                 </BtnDiv>
             </>
         );
@@ -35,4 +39,3 @@ class Button extends React.Component {
 
 }
 
-export default Button;
