@@ -10,7 +10,7 @@ const IMPERATIVE_API = [
 
 type MyProps = {
     value: EmployeeName,
-    inputProps: any,
+    inputProps: { id: string },
     items: Array<{ key: string, name: string }>,
     onSelect: (value: any) => void,
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
@@ -49,7 +49,7 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
 
     componentWillReceiveProps(nextProps: MyProps, nextContext: React.Context<any>) {
         if ((this.props.value !== nextProps.value || this.state.highlightedIndex === null)) {
-            this.setState(this.maybeAutoCompleteText)
+            this.setState(this.maybeAutoCompleteText);
         }
     }
 
@@ -99,22 +99,22 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
 
 
     static keyDownHandlers: {
-        ArrowDown: (event: any) => void;
-        ArrowUp: (event: any) => void;
-        Enter: (event: any) => void;
-        Escape: (event: any) => void;
-        Tab: (event: any) => void;
+        ArrowDown: (event: React.KeyboardEvent) => void;
+        ArrowUp: (event: React.KeyboardEvent) => void;
+        Enter: (event: React.KeyboardEvent) => void;
+        Escape: (event: React.KeyboardEvent) => void;
+        Tab: (event: React.KeyboardEvent) => void;
 
     } = {
         ArrowDown(event: any) {
             event.preventDefault();
             let that = this as any;
-            const items = that.getFilteredItems(that.props);
+            const items: MyProps['items'] = that.getFilteredItems(that.props);
             if (items.length === 0) {
                 return;
             }
             const {highlightedIndex} = that.state;
-            let index = highlightedIndex === null ? -1 : highlightedIndex
+            let index: number = highlightedIndex === null ? -1 : highlightedIndex;
 
             let newhighlightedIndex;
             if (index + 1 === items.length) {
@@ -179,8 +179,8 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
             } else {
                 event.preventDefault();
 
-                const item = that.getFilteredItems(that.props)[that.state.highlightedIndex];
-                const value = item.name;
+                const item: { key: string, name: string } = that.getFilteredItems(that.props)[that.state.highlightedIndex];
+                const value: string = item.name;
                 that.setState({
                     isOpen: false,
                     highlightedIndex: null
@@ -206,21 +206,13 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
 
     };
 
-    composeEventHandlers(internal: any, external: any) {
-        return external
-            ? (e: any) => {
-                internal(e);
-                external(e)
-            }
-            : internal
-    }
 
     isOpen() {
         return this.state.isOpen;
     }
 
 
-    exposeAPI(el: React.Component<HTMLInputElement>) {
+    exposeAPI(el: any) {
         this.notifRef.current.input = el;
         IMPERATIVE_API.forEach((value) => {
             if (el && (el as any)[value]) {
@@ -232,19 +224,19 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
 
     getFilteredItems(props: any): MyProps['items'] {
         let items: MyProps['items'] = props.items;
-        items = items.filter((item: any) => {
+        items = items.filter((item: { key: string, name: string }) => {
             if (this.matchStateToTerm(item, props.value)) {
                 return true;
             } else {
                 return false;
             }
-        }).filter((value: any, index: any) => {
+        }).filter((item: { key: string, name: string }, index: any) => {
             if (index < 10) {
                 return true;
             } else {
                 return false;
             }
-        })
+        });
 
         return items;
     }
@@ -288,13 +280,13 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
         })
     }
 
-    maybeAutoCompleteText(state: any, props: any) {
+    maybeAutoCompleteText(state: MyState, props: MyProps) {
         const {highlightedIndex} = state;
         const {value} = props;
         let index = highlightedIndex === null ? 0 : highlightedIndex;
         let items: MyProps['items'] = this.getFilteredItems(props);
 
-        const matchedItem = items[index] && items[index];
+        const matchedItem: { key: string, name: string } = items[index] && items[index];
         if (value !== '' && matchedItem) {
             const itemValue = matchedItem.name;
             const itemValueDoesMatch = itemValue.toLowerCase().indexOf(value.toLowerCase()) !== -1;
@@ -324,7 +316,7 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
             }
         );
 
-        const menu = ((children) => (<div className="menu">
+        const menu: React.ReactElement<any> = ((children) => (<div className="menu">
             {children}
         </div>))(items);
 
@@ -371,8 +363,8 @@ export class AutoComplete extends React.Component<MyProps, MyState> {
                        onFocus={this.handleInputFocus}
                        onBlur={this.handleInputBlur}
                        onChange={this.handleChange}
-                       onKeyDown={this.composeEventHandlers(this.handleKeyDown, inputProps.onKeyDown)}
-                       onClick={this.composeEventHandlers(this.handleInputClick, inputProps.onClick)}
+                       onKeyDown={this.handleKeyDown}
+                       onClick={this.handleInputClick}
                        value={this.props.value}
                        style={{
                            width: '100%',
